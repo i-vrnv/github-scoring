@@ -5,7 +5,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.time.OffsetDateTime;
-import java.time.temporal.ChronoUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -24,7 +23,7 @@ class ScoreCalculatorTest {
         GitHubRepository repository = new GitHubRepository(
                 0,
                 0,
-                OffsetDateTime.now().minus(3, ChronoUnit.YEARS)
+                OffsetDateTime.now().minusYears(3)
         );
 
         double score = scoreCalculator.calculateScore(repository);
@@ -35,7 +34,7 @@ class ScoreCalculatorTest {
     @Test
     void test_score_increasesWithStars() {
         // Fix forks count and update date
-        OffsetDateTime recentUpdate = OffsetDateTime.now().minus(7, ChronoUnit.DAYS);
+        OffsetDateTime recentUpdate = OffsetDateTime.now().minusDays(7);
         int fixedForks = 10;
 
         // Create repositories with increasing number of stars
@@ -54,7 +53,7 @@ class ScoreCalculatorTest {
     @Test
     void test_score_increasesWithForks() {
         // Fix stars count and update date
-        OffsetDateTime recentUpdate = OffsetDateTime.now().minus(7, ChronoUnit.DAYS);
+        OffsetDateTime recentUpdate = OffsetDateTime.now().minusDays(7);
         int fixedStars = 100;
 
         // Create repositories with increasing number of forks
@@ -80,17 +79,17 @@ class ScoreCalculatorTest {
         GitHubRepository repoOld = new GitHubRepository(
                 fixedStars,
                 fixedForks,
-                OffsetDateTime.now().minus(300, ChronoUnit.DAYS)
+                OffsetDateTime.now().minusDays(300)
         );
         GitHubRepository repoMedium = new GitHubRepository(
                 fixedStars,
                 fixedForks,
-                OffsetDateTime.now().minus(30, ChronoUnit.DAYS)
+                OffsetDateTime.now().minusDays(30)
         );
         GitHubRepository repoRecent = new GitHubRepository(
                 fixedStars,
                 fixedForks,
-                OffsetDateTime.now().minus(1, ChronoUnit.DAYS)
+                OffsetDateTime.now().minusDays(1)
         );
 
         double scoreOld = scoreCalculator.calculateScore(repoOld);
@@ -107,7 +106,7 @@ class ScoreCalculatorTest {
         GitHubRepository repository = new GitHubRepository(
                 500,
                 100,
-                OffsetDateTime.now().minus(30, ChronoUnit.DAYS)
+                OffsetDateTime.now().minusDays(30)
         );
 
         double score = scoreCalculator.calculateScore(repository);
@@ -135,7 +134,7 @@ class ScoreCalculatorTest {
         GitHubRepository repoYesterday = new GitHubRepository(
                 stars,
                 forks,
-                OffsetDateTime.now().minus(1, ChronoUnit.DAYS)
+                OffsetDateTime.now().minusDays(1)
         );
         
         double scoreYesterday = scoreCalculator.calculateScore(repoYesterday);
