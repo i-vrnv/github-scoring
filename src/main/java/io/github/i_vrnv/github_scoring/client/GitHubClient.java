@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
+import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
@@ -65,13 +66,7 @@ public class GitHubClient {
                     .retrieve()
                     .onStatus(HttpStatusCode::isError, (request, response) -> {
                         String errorBody;
-                        try (BufferedReader reader = new BufferedReader(
-                                new InputStreamReader(response.getBody(), StandardCharsets.UTF_8))) {
-                            errorBody = reader.lines().collect(Collectors.joining("\n"));
-                        } catch (IOException e) {
-                            errorBody = "Could not read error response body";
-                            logger.error("Failed to read error response", e);
-                        }
+                        errorBody = getErrorBody(response);
                         logger.error("GitHub API error: {} - {}", response.getStatusCode(), errorBody);
                         throw new GitHubApiException(errorBody, response.getStatusCode());
                     })
@@ -85,7 +80,18 @@ public class GitHubClient {
             throw new GitHubApiException("Error fetching repositories from GitHub", e);
         }
     }
-    
+
+    private String getErrorBody(ClientHttpResponse response) {
+        String errorBody;
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(response.getBody(), StandardCharsets.UTF_8))) {
+            errorBody = reader.lines().collect(Collectors.joining("\n"));
+        } catch (IOException e) {
+            errorBody = "Could not read error response body";
+            logger.error("Failed to read error response", e);
+        }
+        return errorBody;
+    }
+
     /**
      * Builds the GitHub API query string based on the given parameters.
      * 

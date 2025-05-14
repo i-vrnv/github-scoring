@@ -2,7 +2,6 @@ package io.github.i_vrnv.github_scoring.client;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**

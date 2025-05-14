@@ -50,9 +50,9 @@ class GitHubClientTest {
         // Then
         assertThat(repositories).isNotEmpty();
         assertThat(repositories).hasSize(2);
-        assertThat(repositories.get(0).name()).isEqualTo("sample-repo-1");
-        assertThat(repositories.get(0).stars()).isEqualTo(100);
-        assertThat(repositories.get(0).forks()).isEqualTo(20);
+        assertThat(repositories.getFirst().name()).isEqualTo("sample-repo-1");
+        assertThat(repositories.getFirst().stars()).isEqualTo(100);
+        assertThat(repositories.getFirst().forks()).isEqualTo(20);
         
         wireMock.verify(getRequestedFor(urlPathEqualTo("/search/repositories"))
                 .withQueryParam("q", equalTo(expectedQuery))

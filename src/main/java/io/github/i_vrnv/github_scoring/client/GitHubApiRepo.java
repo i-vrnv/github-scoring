@@ -1,7 +1,6 @@
 package io.github.i_vrnv.github_scoring.client;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.github.i_vrnv.github_scoring.model.GitHubRepository;
 
 import java.time.OffsetDateTime;
 
@@ -24,17 +23,4 @@ public record GitHubApiRepo(
             String login,
             @JsonProperty("html_url") String url
     ) {}
-
-    /**
-     * Converts this API DTO to the domain model used for score calculation.
-     *
-     * @return GitHubRepository domain object
-     */
-    public GitHubRepository toGitHubRepository() {
-        return new GitHubRepository(
-                stars,
-                forks,
-                updatedAt
-        );
-    }
 }
