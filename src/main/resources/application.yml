@@ -1,0 +1,7 @@
+spring:
+  application:
+    name: github-scoring
+
+github:
+  api:
+    base-url: https://api.github.com

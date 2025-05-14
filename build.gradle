@@ -21,6 +21,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'org.wiremock.integrations:wiremock-spring-boot:3.6.0'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
