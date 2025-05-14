@@ -6,7 +6,7 @@ import java.time.OffsetDateTime;
 
 /**
  * Immutable record representing GitHub repository data used for score calculation.
- * Contains validation for its properties in the canonical constructor.
+ * Contains validation for its properties in the constructor.
  */
 public record GitHubRepository(
         int stars,
@@ -14,7 +14,7 @@ public record GitHubRepository(
         OffsetDateTime updatedAt) {
 
     /**
-     * Canonical constructor with validation of invariants.
+     *  Constructor with validation of invariants.
      *
      * @param stars number of repository stars (must be non-negative)
      * @param forks number of repository forks (must be non-negative)

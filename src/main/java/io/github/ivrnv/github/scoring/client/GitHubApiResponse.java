@@ -5,9 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 
 /**
- * DTO representing the top-level response from GitHub Search Repositories API.
- * The GitHub API returns a structure with total_count, incomplete_results flag,
- * and an items array containing the actual repositories.
+ * Top-level response from GitHub Search Repositories API.
  */
 public record GitHubApiResponse(
         @JsonProperty("total_count") Integer totalCount,

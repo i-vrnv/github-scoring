@@ -22,7 +22,6 @@ import java.util.stream.Collectors;
 
 /**
  * Client for interacting with GitHub's REST API.
- * Handles fetching repository data based on language and creation date.
  */
 @Component
 public class GitHubClient {
@@ -41,7 +40,7 @@ public class GitHubClient {
     }
     
     /**
-     * Fetches repositories from GitHub based on language and creation date.
+     * Fetches repositories from GitHub.
      *
      * @param language The programming language to filter repositories by
      * @param createdAfter The date after which repositories should have been created
@@ -92,13 +91,6 @@ public class GitHubClient {
         return errorBody;
     }
 
-    /**
-     * Builds the GitHub API query string based on the given parameters.
-     * 
-     * @param language Programming language filter
-     * @param createdAfter Creation date filter
-     * @return Formatted query string for GitHub API
-     */
     private String buildQuery(String language, LocalDate createdAfter) {
         return String.format("language:%s created:>=%s", 
                 language, 

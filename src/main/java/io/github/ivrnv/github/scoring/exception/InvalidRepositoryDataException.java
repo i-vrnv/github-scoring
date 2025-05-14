@@ -6,22 +6,8 @@ package io.github.ivrnv.github.scoring.exception;
  */
 public class InvalidRepositoryDataException extends RuntimeException {
 
-    /**
-     * Constructs a new InvalidRepositoryDataException with the specified detail message.
-     *
-     * @param message the detail message
-     */
     public InvalidRepositoryDataException(String message) {
         super(message);
     }
 
-    /**
-     * Constructs a new InvalidRepositoryDataException with the specified detail message and cause.
-     *
-     * @param message the detail message
-     * @param cause the cause of the exception
-     */
-    public InvalidRepositoryDataException(String message, Throwable cause) {
-        super(message, cause);
-    }
 }

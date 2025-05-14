@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.OffsetDateTime;
 
 /**
- * Data Transfer Object (DTO) for GitHub API repository search results.
+ * Model for GitHub API repository search results.
  * Contains only the fields needed for our repository scoring application.
  */
 public record GitHubApiRepo(
