@@ -73,7 +73,6 @@ curl "http://localhost:8080/api/v1/repositories/scored?language=java&created_aft
       "lastUpdated": "2023-05-15T14:30:45Z",
       "popularityScore": 4.82
     }
-    // Additional repositories...
   ],
   "page": 1,
   "size": 10,
@@ -118,22 +117,11 @@ The application configuration is defined in `src/main/resources/application.yml`
 
 See the comments in the configuration file for detailed explanations of each setting.
 
-## Implementation Details
-
-- **Spring Boot 3.x**: For the web framework and dependency management
-- **Java 21**: For modern language features
-- **Service Architecture**:
-  - `RepositoryScoreController`: Handles HTTP requests and validation
-  - `RepositoryScoreService`: Orchestrates fetching and scoring repositories
-  - `GitHubClient`: Interacts with GitHub's API
-  - `ScoreCalculator`: Implements the scoring algorithm
-
 ## Design Trade-offs
 
-- **Servlet-based Spring MVC** for simplicity and maintainability
-- **Spring RestClient** for synchronous HTTP calls
-- **Weighted composite score** with logarithmic scaling for stars and forks
-- **Layered architecture** for clear separation of concerns
+- **Servlet-based Spring MVC** for simplicity and maintainability. As I don't have information about DAU or RPS, I chose a simple servlet-based approach.
+- **Spring RestClient** for synchronous HTTP calls. I considered using WebClient for async calls, but the complexity of handling async responses and error handling outweighed the benefits for this use case.
+- **Layered architecture** for clear separation of concerns. Domain model is simple and I decided not to use DDD to avoid overcomplicated logic.
 
 ## Limitations and Potential Improvements
 
@@ -142,10 +130,3 @@ See the comments in the configuration file for detailed explanations of each set
 - Caching, parallel processing, and rate limit awareness could improve performance
 - Resilience features like circuit breakers and retries are not yet implemented
 - Security and API authentication are not included in the current version
-
-## License
-
-MIT
-
-`
-`
