@@ -4,7 +4,7 @@ version: 2.1
 jobs:
   test-java:
     docker:
-      - image: cimg/openjdk:17.0
+      - image: cimg/openjdk:21.0
     steps:
       - checkout
       - run:
@@ -15,7 +15,14 @@ jobs:
       - restore_cache:
           key: cache-{{ checksum "/tmp/CIRCLECI_CACHE_KEY" }}
       - run:
-          command: ./gradlew check
+          name: Grant execute permission for gradlew
+          command: chmod +x ./gradlew
+      - run:
+          name: Build (compile only)
+          command: ./gradlew assemble
+      - run:
+          name: Test
+          command: ./gradlew test
       - store_test_results:
           path: build/test-results
       - save_cache:
