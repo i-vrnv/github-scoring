@@ -1,4 +1,4 @@
-package io.github.i_vrnv.github_scoring;
+package io.github.ivrnv.github.scoring;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
