@@ -4,13 +4,14 @@ spring:
 
 github:
   api:
-    base-url: https://api.github.com
+    base-url: https://api.github.com  # Base URL for GitHub REST API
     timeout:
-      connect: 5000
-      read: 10000
+      connect: 5000  # Connection timeout in milliseconds
+      read: 10000    # Read timeout in milliseconds
   scoring:
     weights:
-      stars: 0.5
-      forks: 0.3
-      recency: 0.2
-    max-days-for-recency: 365
+      # Weights used in the scoring algorithm (must sum to 1.0)
+      stars: 0.5     # Weight for repository stars (higher means stars are more important)
+      forks: 0.3     # Weight for repository forks (higher means forks are more important)
+      recency: 0.2   # Weight for repository update recency (higher means recency is more important)
+    max-days-for-recency: 365  # Maximum days to consider for recency (older updates get 0 points)
