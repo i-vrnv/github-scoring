@@ -15,6 +15,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
@@ -33,10 +34,21 @@ public class GitHubClient {
     
     private final RestClient restClient;
     
-    public GitHubClient(@Value("${github.api.baseUrl:https://api.github.com}") String baseUrl) {
+    public GitHubClient(
+            @Value("${github.api.baseUrl:https://api.github.com}") String baseUrl,
+            @Value("${github.api.timeout.connect:5000}") int connectTimeout,
+            @Value("${github.api.timeout.read:10000}") int readTimeout) {
+        
+        logger.info("Initializing GitHub client with baseUrl: {}, connectTimeout: {}ms, readTimeout: {}ms", 
+                baseUrl, connectTimeout, readTimeout);
+        
         this.restClient = RestClient.builder()
                 .baseUrl(baseUrl)
                 .defaultHeader("Accept", MediaType.APPLICATION_JSON_VALUE)
+                .requestInterceptor(clientHttpRequestFactory -> {
+                    clientHttpRequestFactory.setConnectTimeout(Duration.ofMillis(connectTimeout));
+                    clientHttpRequestFactory.setReadTimeout(Duration.ofMillis(readTimeout));
+                })
                 .build();
     }
     

@@ -5,6 +5,9 @@ spring:
 github:
   api:
     base-url: https://api.github.com
+    timeout:
+      connect: 5000
+      read: 10000
   scoring:
     weights:
       stars: 0.5
