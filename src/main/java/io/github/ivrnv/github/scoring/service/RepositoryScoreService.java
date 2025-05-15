@@ -1,8 +1,10 @@
 package io.github.ivrnv.github.scoring.service;
 
 import io.github.ivrnv.github.scoring.client.GitHubApiRepo;
+import io.github.ivrnv.github.scoring.client.GitHubApiResponse;
 import io.github.ivrnv.github.scoring.client.GitHubClient;
 import io.github.ivrnv.github.scoring.model.GitHubRepository;
+import io.github.ivrnv.github.scoring.model.Page;
 import io.github.ivrnv.github.scoring.model.ScoredRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,18 +36,26 @@ public class RepositoryScoreService {
      *
      * @param language     The programming language to filter repositories by
      * @param createdAfter The minimum creation date for repositories
-     * @return A list of repositories with their calculated popularity scores
+     * @param pageable     Pagination information
+     * @return A page of repositories with their calculated popularity scores
      */
-    public List<ScoredRepository> getScoredRepositories(String language, LocalDate createdAfter, int size) {
+    public Page<ScoredRepository> getScoredRepositories(String language, LocalDate createdAfter, PageRequest pageable) {
         try {
-            List<GitHubApiRepo> repositories = gitHubClient.fetchRepositories(language, createdAfter, size);
+            GitHubApiResponse response = gitHubClient.fetchRepositories(language, createdAfter, pageable);
             
-            return repositories.stream()
+            List<ScoredRepository> scoredRepos = response.repositories().stream()
                 .map(this::convertToScoredRepository)
                 .collect(Collectors.toList());
+                
+            return Page.of(
+                scoredRepos,
+                pageable.page(),
+                pageable.size(),
+                response.totalCount()
+            );
         } catch (Exception e) {
             logger.error("Error while fetching or scoring repositories", e);
-            return Collections.emptyList();
+            return Page.of(Collections.emptyList(), pageable.page(), pageable.size(), 0);
         }
     }
 

@@ -2,6 +2,7 @@ package io.github.ivrnv.github.scoring.client;
 
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import io.github.ivrnv.github.scoring.exception.GitHubApiException;
+import io.github.ivrnv.github.scoring.service.PageRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -35,7 +36,7 @@ class GitHubClientTest {
         // Given
         String language = "java";
         LocalDate createdAfter = LocalDate.of(2023, 1, 1);
-        int size = 30;
+        PageRequest pageable = new PageRequest(1, 30);
         String expectedQuery = "language:java created:>=2023-01-01";
         
         wireMock.stubFor(get(urlPathEqualTo("/search/repositories"))
@@ -46,14 +47,14 @@ class GitHubClientTest {
                         .withBodyFile("github/successful_response.json")));
                         
         // When
-        List<GitHubApiRepo> repositories = gitHubClient.fetchRepositories(language, createdAfter, size);
+        GitHubApiResponse repositories = gitHubClient.fetchRepositories(language, createdAfter, pageable);
         
         // Then
-        assertThat(repositories).isNotEmpty();
-        assertThat(repositories).hasSize(2);
-        assertThat(repositories.getFirst().name()).isEqualTo("sample-repo-1");
-        assertThat(repositories.getFirst().stars()).isEqualTo(100);
-        assertThat(repositories.getFirst().forks()).isEqualTo(20);
+        assertThat(repositories.repositories()).isNotEmpty();
+        assertThat(repositories.repositories()).hasSize(2);
+        assertThat(repositories.repositories().getFirst().name()).isEqualTo("sample-repo-1");
+        assertThat(repositories.repositories().getFirst().stars()).isEqualTo(100);
+        assertThat(repositories.repositories().getFirst().forks()).isEqualTo(20);
         
         wireMock.verify(getRequestedFor(urlPathEqualTo("/search/repositories"))
                 .withQueryParam("q", equalTo(expectedQuery))
@@ -67,7 +68,7 @@ class GitHubClientTest {
         // Given
         String language = "java";
         LocalDate createdAfter = LocalDate.of(2023, 1, 1);
-        int size = 30;
+        PageRequest pageable = new PageRequest(1, 30);
         String expectedQuery = "language:java created:>=2023-01-01";
         
         wireMock.stubFor(get(urlPathEqualTo("/search/repositories"))
@@ -78,10 +79,16 @@ class GitHubClientTest {
                         .withBodyFile("github/empty_response.json")));
                         
         // When
-        List<GitHubApiRepo> repositories = gitHubClient.fetchRepositories(language, createdAfter, size);
+        GitHubApiResponse response = gitHubClient.fetchRepositories(language, createdAfter, pageable);
         
         // Then
-        assertThat(repositories).isEmpty();
+        assertThat(response.repositories()).isEmpty();
+        
+        wireMock.verify(getRequestedFor(urlPathEqualTo("/search/repositories"))
+                .withQueryParam("q", equalTo(expectedQuery))
+                .withQueryParam("per_page", equalTo("30"))
+                .withQueryParam("sort", equalTo("stars"))
+                .withQueryParam("order", equalTo("desc")));
     }
     
     @Test
@@ -89,7 +96,7 @@ class GitHubClientTest {
         // Given
         String language = "java";
         LocalDate createdAfter = LocalDate.of(2023, 1, 1);
-        int size = 30;
+        PageRequest pageable = new PageRequest(1, 30);
         String expectedQuery = "language:java created:>=2023-01-01";
         
         wireMock.stubFor(get(urlPathEqualTo("/search/repositories"))
@@ -101,7 +108,7 @@ class GitHubClientTest {
                         
         // When & Then
         GitHubApiException exception = assertThrows(GitHubApiException.class, () -> 
-                gitHubClient.fetchRepositories(language, createdAfter, size));
+                gitHubClient.fetchRepositories(language, createdAfter, pageable));
                 
         assertThat(exception.getMessage()).contains("API rate limit exceeded");
         assertThat(exception.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
@@ -112,7 +119,7 @@ class GitHubClientTest {
         // Given
         String language = "python";
         LocalDate createdAfter = LocalDate.of(2024, 1, 15);
-        int size = 30;
+        PageRequest pageable = new PageRequest(1, 30);
         String expectedQuery = "language:python created:>=2024-01-15";
         
         wireMock.stubFor(get(urlPathEqualTo("/search/repositories"))
@@ -123,11 +130,14 @@ class GitHubClientTest {
                         .withBodyFile("github/successful_response.json")));
                         
         // When
-        gitHubClient.fetchRepositories(language, createdAfter, size);
+        gitHubClient.fetchRepositories(language, createdAfter, pageable);
         
         // Then
         wireMock.verify(getRequestedFor(urlPathEqualTo("/search/repositories"))
-                .withQueryParam("q", equalTo(expectedQuery)));
+                .withQueryParam("q", equalTo(expectedQuery))
+                .withQueryParam("per_page", equalTo("30"))
+                .withQueryParam("sort", equalTo("stars"))
+                .withQueryParam("order", equalTo("desc")));
     }
     
     @Test
@@ -135,11 +145,11 @@ class GitHubClientTest {
         // Given
         String language = null;
         LocalDate createdAfter = LocalDate.of(2023, 1, 1);
-        int size = 30;
+        PageRequest pageable = new PageRequest(1, 30);
         
         // When & Then
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> 
-                gitHubClient.fetchRepositories(language, createdAfter, size));
+                gitHubClient.fetchRepositories(language, createdAfter, pageable));
                 
         assertThat(exception.getMessage()).isEqualTo("Language must not be null or empty");
     }
@@ -149,11 +159,11 @@ class GitHubClientTest {
         // Given
         String language = "   ";
         LocalDate createdAfter = LocalDate.of(2023, 1, 1);
-        int size = 30;
+        PageRequest pageable = new PageRequest(1, 30);
         
         // When & Then
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> 
-                gitHubClient.fetchRepositories(language, createdAfter, size));
+                gitHubClient.fetchRepositories(language, createdAfter, pageable));
                 
         assertThat(exception.getMessage()).isEqualTo("Language must not be null or empty");
     }
@@ -163,13 +173,41 @@ class GitHubClientTest {
         // Given
         String language = "java";
         LocalDate createdAfter = null;
-        int size = 30;
+        PageRequest pageable = new PageRequest(1, 30);
         
         // When & Then
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> 
-                gitHubClient.fetchRepositories(language, createdAfter, size));
+                gitHubClient.fetchRepositories(language, createdAfter, pageable));
                 
         assertThat(exception.getMessage()).isEqualTo("Created after date must not be null");
+    }
+    
+    @Test
+    void throwsException_whenPageIsZero() {
+        // Given
+        String language = "java";
+        LocalDate createdAfter = LocalDate.of(2023, 1, 1);
+        PageRequest pageable = new PageRequest(0, 30);
+        
+        // When & Then
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> 
+                gitHubClient.fetchRepositories(language, createdAfter, pageable));
+                
+        assertThat(exception.getMessage()).isEqualTo("Page must be greater than 0");
+    }
+    
+    @Test
+    void throwsException_whenPageIsNegative() {
+        // Given
+        String language = "java";
+        LocalDate createdAfter = LocalDate.of(2023, 1, 1);
+        PageRequest pageable = new PageRequest(-5, 30);
+        
+        // When & Then
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
+                gitHubClient.fetchRepositories(language, createdAfter, pageable));
+                
+        assertThat(exception.getMessage()).isEqualTo("Page must be greater than 0");
     }
     
     @Test
@@ -177,11 +215,11 @@ class GitHubClientTest {
         // Given
         String language = "java";
         LocalDate createdAfter = LocalDate.of(2023, 1, 1);
-        int size = 0;
+        PageRequest pageable = new PageRequest(1, 0);
         
         // When & Then
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> 
-                gitHubClient.fetchRepositories(language, createdAfter, size));
+                gitHubClient.fetchRepositories(language, createdAfter, pageable));
                 
         assertThat(exception.getMessage()).isEqualTo("Size must be greater than 0");
     }
@@ -191,11 +229,11 @@ class GitHubClientTest {
         // Given
         String language = "java";
         LocalDate createdAfter = LocalDate.of(2023, 1, 1);
-        int size = -5;
+        PageRequest pageable = new PageRequest(1, -5);
         
         // When & Then
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> 
-                gitHubClient.fetchRepositories(language, createdAfter, size));
+                gitHubClient.fetchRepositories(language, createdAfter, pageable));
                 
         assertThat(exception.getMessage()).isEqualTo("Size must be greater than 0");
     }
@@ -205,11 +243,11 @@ class GitHubClientTest {
         // Given
         String language = "java";
         LocalDate createdAfter = LocalDate.of(2023, 1, 1);
-        int size = 101;
+        PageRequest pageable = new PageRequest(1, 101);
         
         // When & Then
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> 
-                gitHubClient.fetchRepositories(language, createdAfter, size));
+                gitHubClient.fetchRepositories(language, createdAfter, pageable));
                 
         assertThat(exception.getMessage()).isEqualTo("Size must not exceed 100");
     }

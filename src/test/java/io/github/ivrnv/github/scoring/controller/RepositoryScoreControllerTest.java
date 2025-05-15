@@ -1,5 +1,6 @@
 package io.github.ivrnv.github.scoring.controller;
 
+import io.github.ivrnv.github.scoring.model.Page;
 import io.github.ivrnv.github.scoring.model.ScoredRepository;
 import io.github.ivrnv.github.scoring.service.RepositoryScoreService;
 import org.junit.jupiter.api.Test;
@@ -34,27 +35,33 @@ class RepositoryScoreControllerTest {
         String createdAfter = "2023-01-01";
 
         OffsetDateTime updateTime = OffsetDateTime.now();
-        List<ScoredRepository> mockResponse = getScoredRepositories(updateTime);
+        Page<ScoredRepository> mockResponse = getScoredRepositories(updateTime);
 
-        when(repositoryScoreService.getScoredRepositories(eq(language), any(LocalDate.class), anyInt()))
+        when(repositoryScoreService.getScoredRepositories(eq(language), any(LocalDate.class), any()))
                 .thenReturn(mockResponse);
 
         // Act & Assert
         mockMvc.perform(get("/api/repositories/scored")
                 .param("language", language)
-                .param("created_after", createdAfter))
+                .param("created_after", createdAfter)
+                .param("page", "1")
+                .param("size", "2"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$.length()").value(2))
-                .andExpect(jsonPath("$[0].name").value("awesome-repo"))
-                .andExpect(jsonPath("$[0].owner").value("user1"))
-                .andExpect(jsonPath("$[0].stars").value(100))
-                .andExpect(jsonPath("$[0].forks").value(20))
-                .andExpect(jsonPath("$[0].popularityScore").value(85.5))
-                .andExpect(jsonPath("$[1].name").value("cool-project"))
-                .andExpect(jsonPath("$[1].owner").value("user2"))
-                .andExpect(jsonPath("$[1].popularityScore").value(42.0));
+                .andExpect(jsonPath("$.content").isArray())
+                .andExpect(jsonPath("$.content.length()").value(2))
+                .andExpect(jsonPath("$.content[0].name").value("awesome-repo"))
+                .andExpect(jsonPath("$.content[0].owner").value("user1"))
+                .andExpect(jsonPath("$.content[0].stars").value(100))
+                .andExpect(jsonPath("$.content[0].forks").value(20))
+                .andExpect(jsonPath("$.content[0].popularityScore").value(85.5))
+                .andExpect(jsonPath("$.content[1].name").value("cool-project"))
+                .andExpect(jsonPath("$.content[1].owner").value("user2"))
+                .andExpect(jsonPath("$.content[1].popularityScore").value(42.0))
+                .andExpect(jsonPath("$.pageNumber").value(1))
+                .andExpect(jsonPath("$.pageSize").value(2))
+                .andExpect(jsonPath("$.totalElements").value(2))
+                .andExpect(jsonPath("$.totalPages").value(1));
     }
 
     @Test
@@ -82,7 +89,7 @@ class RepositoryScoreControllerTest {
     @Test
     void returns500_whenServiceThrowsException() throws Exception {
         // Arrange
-        when(repositoryScoreService.getScoredRepositories(any(), any(), anyInt()))
+        when(repositoryScoreService.getScoredRepositories(any(), any(), any()))
                 .thenThrow(new RuntimeException("Service error"));
 
         // Act & Assert
@@ -92,7 +99,7 @@ class RepositoryScoreControllerTest {
                 .andExpect(status().isInternalServerError());
     }
 
-    private static List<ScoredRepository> getScoredRepositories(OffsetDateTime updateTime) {
+    private static Page<ScoredRepository> getScoredRepositories(OffsetDateTime updateTime) {
         ScoredRepository repo1 = new ScoredRepository(
                 "awesome-repo",
                 "user1",
@@ -111,6 +118,11 @@ class RepositoryScoreControllerTest {
                 updateTime.minusDays(30),
                 42.0);
 
-        return List.of(repo1, repo2);
+        return Page.of(
+                List.of(repo1, repo2),
+                1,
+                2,
+                2
+        );
     }
 }

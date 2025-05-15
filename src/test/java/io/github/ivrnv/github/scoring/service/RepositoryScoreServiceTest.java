@@ -1,7 +1,9 @@
 package io.github.ivrnv.github.scoring.service;
 
 import io.github.ivrnv.github.scoring.client.GitHubApiRepo;
+import io.github.ivrnv.github.scoring.client.GitHubApiResponse;
 import io.github.ivrnv.github.scoring.client.GitHubClient;
+import io.github.ivrnv.github.scoring.model.Page;
 import io.github.ivrnv.github.scoring.model.ScoredRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -36,7 +38,7 @@ class RepositoryScoreServiceTest {
         // Given
         var language = "java";
         var createdAfter = LocalDate.parse("2023-01-01");
-        var size = 30;
+        var pageable = new PageRequest(1, 30);
 
         OffsetDateTime recentUpdateTime = OffsetDateTime.now().minusDays(5);
 
@@ -45,18 +47,18 @@ class RepositoryScoreServiceTest {
         GitHubApiRepo repo2 = createGitHubApiRepo("repo2", "owner2", "https://github.com/owner2/repo2",
                 200, 20, recentUpdateTime.minusDays(30));
 
-        List<GitHubApiRepo> mockRepos = List.of(repo1, repo2);
+        GitHubApiResponse mockResponse = new GitHubApiResponse(2, false, List.of(repo1, repo2));
 
-        when(gitHubClient.fetchRepositories(language, createdAfter, size)).thenReturn(mockRepos);
+        when(gitHubClient.fetchRepositories(language, createdAfter, pageable)).thenReturn(mockResponse);
 
         // When
-        List<ScoredRepository> result = sut.getScoredRepositories(language, createdAfter, size);
+        Page<ScoredRepository> result = sut.getScoredRepositories(language, createdAfter, pageable);
 
         // Then
-        assertThat(result).hasSize(2);
+        assertThat(result.content()).hasSize(2);
 
         // Verify first repository
-        ScoredRepository scoredRepo1 = result.getFirst();
+        ScoredRepository scoredRepo1 = result.content().getFirst();
         assertThat(scoredRepo1.name()).isEqualTo("repo1");
         assertThat(scoredRepo1.owner()).isEqualTo("owner1");
         assertThat(scoredRepo1.url()).isEqualTo("https://github.com/owner1/repo1");
@@ -65,7 +67,7 @@ class RepositoryScoreServiceTest {
         assertThat(scoredRepo1.lastUpdated()).isEqualTo(recentUpdateTime);
 
         // For the second repository, just verify it exists with the expected data
-        ScoredRepository scoredRepo2 = result.get(1);
+        ScoredRepository scoredRepo2 = result.content().get(1);
         assertThat(scoredRepo2.name()).isEqualTo("repo2");
         assertThat(scoredRepo2.owner()).isEqualTo("owner2");
         assertThat(scoredRepo2.url()).isEqualTo("https://github.com/owner2/repo2");
@@ -79,15 +81,17 @@ class RepositoryScoreServiceTest {
         // Given
         String language = "java";
         var createdAfter = LocalDate.parse("2023-01-01");
-        int size = 30;
+        var pageable = new PageRequest(1, 30);
 
-        when(gitHubClient.fetchRepositories(language, createdAfter, size)).thenReturn(Collections.emptyList());
+        GitHubApiResponse mockResponse = new GitHubApiResponse(0, false, Collections.emptyList());
+        when(gitHubClient.fetchRepositories(language, createdAfter, pageable)).thenReturn(mockResponse);
         
         // When
-        List<ScoredRepository> result = sut.getScoredRepositories(language, createdAfter, size);
+        Page<ScoredRepository> result = sut.getScoredRepositories(language, createdAfter, pageable);
         
         // Then
-        assertThat(result).isEmpty();
+        assertThat(result.content()).isEmpty();
+        assertThat(result.totalElements()).isZero();
     }
 
     @Test
@@ -95,15 +99,17 @@ class RepositoryScoreServiceTest {
         // Given
         String language = "java";
         var createdAfter = LocalDate.parse("2023-01-01");
-        int size = 30;
+        var pageable = new PageRequest(1, 30);
 
-        when(gitHubClient.fetchRepositories(language, createdAfter, size)).thenThrow(new RuntimeException("API Error"));
+        when(gitHubClient.fetchRepositories(language, createdAfter, pageable))
+            .thenThrow(new RuntimeException("API Error"));
         
         // When
-        List<ScoredRepository> result = sut.getScoredRepositories(language, createdAfter, size);
+        Page<ScoredRepository> result = sut.getScoredRepositories(language, createdAfter, pageable);
         
         // Then
-        assertThat(result).isEmpty();
+        assertThat(result.content()).isEmpty();
+        assertThat(result.totalElements()).isZero();
     }
     
     private GitHubApiRepo createGitHubApiRepo(String name,

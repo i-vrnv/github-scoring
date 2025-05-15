@@ -1,8 +1,11 @@
 package io.github.ivrnv.github.scoring.controller;
 
+import io.github.ivrnv.github.scoring.model.Page;
 import io.github.ivrnv.github.scoring.model.ScoredRepository;
+import io.github.ivrnv.github.scoring.service.PageRequest;
 import io.github.ivrnv.github.scoring.service.RepositoryScoreService;
 import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import org.slf4j.Logger;
@@ -17,7 +20,6 @@ import org.springframework.web.bind.annotation.RestController;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.util.List;
 
 /**
  * Controller for GitHub repository scoring endpoints.
@@ -36,24 +38,18 @@ public class RepositoryScoreController {
         this.repositoryScoreService = repositoryScoreService;
     }
 
-    /**
-     * Retrieves GitHub repositories with calculated popularity scores.
-     *
-     * @param language     The programming language to filter repositories by (required)
-     * @param createdAfter The minimum creation date for repositories in ISO format (YYYY-MM-DD) (required)
-     * @return A list of repositories with their calculated popularity scores
-     */
     @GetMapping("/scored")
-    public ResponseEntity<List<ScoredRepository>> getScoredRepositories(
+    public ResponseEntity<Page<ScoredRepository>> getScoredRepositories(
             @RequestParam("language") @NotBlank String language,
             @RequestParam("created_after") @NotBlank @Pattern(regexp = "\\d{4}-\\d{2}-\\d{2}") String createdAfter,
-            @RequestParam(value = "page", defaultValue = "1") int page,
-            @RequestParam(value = "size", defaultValue = "30") @Max(100) int size
+            @RequestParam(value = "page", defaultValue = "1") @Min(1) int page,
+            @RequestParam(value = "size", defaultValue = "30") @Min(1) @Max(100) int size
             ) {
         
         try {
             LocalDate createdAfterDate = LocalDate.parse(createdAfter, DATE_FORMATTER);
-            List<ScoredRepository> scoredRepositories = repositoryScoreService.getScoredRepositories(language, createdAfterDate, size);
+            PageRequest pageRequest = new PageRequest(page, size);
+            Page<ScoredRepository> scoredRepositories = repositoryScoreService.getScoredRepositories(language, createdAfterDate, pageRequest);
             return ResponseEntity.ok(scoredRepositories);
         } catch (DateTimeParseException e) {
             logger.error("Invalid date format: {}", createdAfter, e);

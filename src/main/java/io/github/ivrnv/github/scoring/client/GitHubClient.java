@@ -1,6 +1,7 @@
 package io.github.ivrnv.github.scoring.client;
 
 import io.github.ivrnv.github.scoring.exception.GitHubApiException;
+import io.github.ivrnv.github.scoring.service.PageRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -44,23 +45,26 @@ public class GitHubClient {
      *
      * @param language The programming language to filter repositories by (must not be null or empty)
      * @param createdAfter The date after which repositories should have been created (must not be null)
-     * @param size The number of repositories to fetch (must be between 1 and 100 inclusive)
-     * @return List of GitHub repositories matching the criteria
+     * @param pageable Pagination information
+     * @return GitHubApiResponse containing repositories and pagination metadata
      * @throws IllegalArgumentException if any of the parameters don't meet the validation requirements
      * @throws GitHubApiException if there's an error communicating with the GitHub API
      */
-    public List<GitHubApiRepo> fetchRepositories(String language, LocalDate createdAfter, int size) {
+    public GitHubApiResponse fetchRepositories(String language, LocalDate createdAfter, PageRequest pageable) {
         if (language == null || language.isBlank()) {
             throw new IllegalArgumentException("Language must not be null or empty");
         }
         if (createdAfter == null) {
             throw new IllegalArgumentException("Created after date must not be null");
         }
-        if (size <= 0) {
+        if (pageable.size() <= 0) {
             throw new IllegalArgumentException("Size must be greater than 0");
         }
-        if (size > 100) {
+        if (pageable.size() > 100) {
             throw new IllegalArgumentException("Size must not exceed 100");
+        }
+        if (pageable.page() <= 0) {
+            throw new IllegalArgumentException("Page must be greater than 0");
         }
 
         try {
@@ -70,21 +74,20 @@ public class GitHubClient {
                     .uri(uriBuilder -> uriBuilder
                             .path(SEARCH_REPOS_ENDPOINT)
                             .queryParam("q", query)
-                            .queryParam("per_page", DEFAULT_PER_PAGE)
                             .queryParam("sort", "stars")
                             .queryParam("order", "desc")
-                            .queryParam("per_page", size)
+                            .queryParam("page", pageable.page())
+                            .queryParam("per_page", pageable.size())
                             .build())
                     .retrieve()
                     .onStatus(HttpStatusCode::isError, (request, response) -> {
-                        String errorBody;
-                        errorBody = getErrorBody(response);
+                        String errorBody = getErrorBody(response);
                         logger.error("GitHub API error: {} - {}", response.getStatusCode(), errorBody);
                         throw new GitHubApiException(errorBody, response.getStatusCode());
                     })
                     .body(GitHubApiResponse.class);
             
-            return result != null ? result.repositories() : Collections.emptyList();
+            return result != null ? result : new GitHubApiResponse(0, false, java.util.Collections.emptyList());
         } catch (GitHubApiException e) {
             throw e;
         } catch (Exception e) {
