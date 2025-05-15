@@ -22,6 +22,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(RepositoryScoreController.class)
 class RepositoryScoreControllerTest {
 
+    public static final String PATH = "/api/v1/repositories/scored";
+
     @Autowired
     private MockMvc mockMvc;
 
@@ -41,7 +43,7 @@ class RepositoryScoreControllerTest {
                 .thenReturn(mockResponse);
 
         // Act & Assert
-        mockMvc.perform(get("/api/repositories/scored")
+        mockMvc.perform(get(PATH)
                 .param("language", language)
                 .param("created_after", createdAfter)
                 .param("page", "1")
@@ -66,21 +68,21 @@ class RepositoryScoreControllerTest {
 
     @Test
     void returns400_forMissingLanguageParameter() throws Exception {
-        mockMvc.perform(get("/api/repositories/scored")
+        mockMvc.perform(get(PATH)
                 .param("created_after", "2023-01-01"))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
     void returns400_forMissingCreatedAfterParameter() throws Exception {
-        mockMvc.perform(get("/api/repositories/scored")
+        mockMvc.perform(get(PATH)
                 .param("language", "java"))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
     void returns400_forInvalidCreatedAfterFormat() throws Exception {
-        mockMvc.perform(get("/api/repositories/scored")
+        mockMvc.perform(get(PATH)
                 .param("language", "java")
                 .param("created_after", "invalid-date"))
                 .andExpect(status().isBadRequest());
@@ -93,7 +95,7 @@ class RepositoryScoreControllerTest {
                 .thenThrow(new RuntimeException("Service error"));
 
         // Act & Assert
-        mockMvc.perform(get("/api/repositories/scored")
+        mockMvc.perform(get(PATH)
                 .param("language", "java")
                 .param("created_after", "2023-01-01"))
                 .andExpect(status().isInternalServerError());
