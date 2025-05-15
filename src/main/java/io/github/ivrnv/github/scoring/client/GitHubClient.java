@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
@@ -41,14 +42,14 @@ public class GitHubClient {
         
         logger.info("Initializing GitHub client with baseUrl: {}, connectTimeout: {}ms, readTimeout: {}ms", 
                 baseUrl, connectTimeout, readTimeout);
-        
+        var factory = new HttpComponentsClientHttpRequestFactory();
+        factory.setConnectTimeout(connectTimeout);
+        factory.setReadTimeout(readTimeout);
+
         this.restClient = RestClient.builder()
                 .baseUrl(baseUrl)
                 .defaultHeader("Accept", MediaType.APPLICATION_JSON_VALUE)
-                .requestInterceptor(clientHttpRequestFactory -> {
-                    clientHttpRequestFactory.setConnectTimeout(Duration.ofMillis(connectTimeout));
-                    clientHttpRequestFactory.setReadTimeout(Duration.ofMillis(readTimeout));
-                })
+                .requestFactory(factory )
                 .build();
     }
     
