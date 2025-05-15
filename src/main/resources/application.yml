@@ -5,3 +5,9 @@ spring:
 github:
   api:
     base-url: https://api.github.com
+  scoring:
+    weights:
+      stars: 0.5
+      forks: 0.3
+      recency: 0.2
+    max-days-for-recency: 365

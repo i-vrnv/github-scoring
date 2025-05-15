@@ -14,7 +14,7 @@ class ScoreCalculatorTest {
 
     @BeforeEach
     void setUp() {
-        scoreCalculator = new ScoreCalculator();
+        scoreCalculator = new ScoreCalculator(0.5, 0.3, 0.2, 365);
     }
 
     @Test

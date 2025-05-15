@@ -27,7 +27,7 @@ class RepositoryScoreServiceTest {
 
     @BeforeEach
     void setUp() {
-        ScoreCalculator scoreCalculator = new ScoreCalculator();
+        ScoreCalculator scoreCalculator = new ScoreCalculator(0.5, 0.3, 0.2, 365);
         sut = new RepositoryScoreService(gitHubClient, scoreCalculator);
     }
 
