@@ -10,7 +10,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 
 import java.time.LocalDate;
-import java.util.List;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
@@ -28,7 +27,7 @@ class GitHubClientTest {
     
     @BeforeEach
     void setUp() {
-        gitHubClient = new GitHubClient(wireMock.baseUrl());
+        gitHubClient = new GitHubClient(wireMock.baseUrl(), 5000, 10000);
     }
     
     @Test

@@ -16,11 +16,9 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.time.Duration;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
-import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -30,7 +28,6 @@ import java.util.stream.Collectors;
 public class GitHubClient {
     private static final Logger logger = LoggerFactory.getLogger(GitHubClient.class);
     private static final String SEARCH_REPOS_ENDPOINT = "/search/repositories";
-    private static final int DEFAULT_PER_PAGE = 30;
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ISO_LOCAL_DATE;
     
     private final RestClient restClient;
@@ -58,7 +55,7 @@ public class GitHubClient {
      *
      * @param language The programming language to filter repositories by (must not be null or empty)
      * @param createdAfter The date after which repositories should have been created (must not be null)
-     * @param pageable Pagination information
+     * @param pageable Pagination information (page must be > 0, size must be between 1 and 100)
      * @return GitHubApiResponse containing repositories and pagination metadata
      * @throws IllegalArgumentException if any of the parameters don't meet the validation requirements
      * @throws GitHubApiException if there's an error communicating with the GitHub API
@@ -83,6 +80,9 @@ public class GitHubClient {
         try {
             String query = buildQuery(language, createdAfter);
             
+            logger.debug("Fetching repositories with query: {}, page: {}, size: {}", 
+                    query, pageable.page(), pageable.size());
+            
             GitHubApiResponse result = restClient.get()
                     .uri(uriBuilder -> uriBuilder
                             .path(SEARCH_REPOS_ENDPOINT)
@@ -100,7 +100,11 @@ public class GitHubClient {
                     })
                     .body(GitHubApiResponse.class);
             
-            return result != null ? result : new GitHubApiResponse(0, false, java.util.Collections.emptyList());
+            logger.debug("Retrieved {} repositories (total count: {})", 
+                    result != null ? result.repositories().size() : 0,
+                    result != null ? result.totalCount() : 0);
+            
+            return result != null ? result : new GitHubApiResponse(0, false, Collections.emptyList());
         } catch (GitHubApiException e) {
             throw e;
         } catch (Exception e) {

@@ -16,6 +16,7 @@ import java.util.Map;
 
 /**
  * Global exception handler for standardizing API error responses.
+ * Provides consistent error handling for common exceptions in the application.
  */
 @ControllerAdvice
 public class GlobalExceptionHandler {
@@ -52,6 +53,32 @@ public class GlobalExceptionHandler {
         Map<String, Object> body = new HashMap<>();
         body.put("error", "Invalid Parameter");
         body.put("message", "Invalid parameter format: " + ex.getMessage());
+        
+        return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(GitHubApiException.class)
+    public ResponseEntity<Object> handleGitHubApiException(GitHubApiException ex) {
+        HttpStatus status = ex.getStatusCode() != null 
+            ? HttpStatus.valueOf(ex.getStatusCode().value()) 
+            : HttpStatus.SERVICE_UNAVAILABLE;
+        
+        logger.error("GitHub API error: {} - {}", status, ex.getMessage());
+        
+        Map<String, Object> body = new HashMap<>();
+        body.put("error", "GitHub API Error");
+        body.put("message", ex.getMessage());
+        
+        return new ResponseEntity<>(body, status);
+    }
+
+    @ExceptionHandler(InvalidRepositoryDataException.class)
+    public ResponseEntity<Object> handleInvalidRepositoryDataException(InvalidRepositoryDataException ex) {
+        logger.error("Invalid repository data: {}", ex.getMessage());
+        
+        Map<String, Object> body = new HashMap<>();
+        body.put("error", "Invalid Repository Data");
+        body.put("message", ex.getMessage());
         
         return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
     }

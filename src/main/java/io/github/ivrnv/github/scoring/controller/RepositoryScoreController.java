@@ -46,10 +46,17 @@ public class RepositoryScoreController {
             @RequestParam(value = "size", defaultValue = "30") @Min(1) @Max(100) int size
             ) {
         
+        logger.debug("Received request for scored repositories - language: {}, createdAfter: {}, page: {}, size: {}", 
+                language, createdAfter, page, size);
+        
         try {
             LocalDate createdAfterDate = LocalDate.parse(createdAfter, DATE_FORMATTER);
             PageRequest pageRequest = new PageRequest(page, size);
             Page<ScoredRepository> scoredRepositories = repositoryScoreService.getScoredRepositories(language, createdAfterDate, pageRequest);
+            
+            logger.debug("Returning {} repositories (total: {})", 
+                    scoredRepositories.content().size(), scoredRepositories.totalElements());
+            
             return ResponseEntity.ok(scoredRepositories);
         } catch (DateTimeParseException e) {
             logger.error("Invalid date format: {}", createdAfter, e);
