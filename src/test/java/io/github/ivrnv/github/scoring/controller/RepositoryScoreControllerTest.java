@@ -13,8 +13,7 @@ import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.List;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -33,11 +32,11 @@ class RepositoryScoreControllerTest {
         // Arrange
         String language = "java";
         String createdAfter = "2023-01-01";
-        
+
         OffsetDateTime updateTime = OffsetDateTime.now();
         List<ScoredRepository> mockResponse = getScoredRepositories(updateTime);
 
-        when(repositoryScoreService.getScoredRepositories(eq(language), any(LocalDate.class)))
+        when(repositoryScoreService.getScoredRepositories(eq(language), any(LocalDate.class), anyInt()))
                 .thenReturn(mockResponse);
 
         // Act & Assert
@@ -83,7 +82,7 @@ class RepositoryScoreControllerTest {
     @Test
     void returns500_whenServiceThrowsException() throws Exception {
         // Arrange
-        when(repositoryScoreService.getScoredRepositories(any(), any()))
+        when(repositoryScoreService.getScoredRepositories(any(), any(), anyInt()))
                 .thenThrow(new RuntimeException("Service error"));
 
         // Act & Assert

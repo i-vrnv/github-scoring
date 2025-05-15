@@ -42,15 +42,27 @@ public class GitHubClient {
     /**
      * Fetches repositories from GitHub.
      *
-     * @param language The programming language to filter repositories by
-     * @param createdAfter The date after which repositories should have been created
+     * @param language The programming language to filter repositories by (must not be null or empty)
+     * @param createdAfter The date after which repositories should have been created (must not be null)
+     * @param size The number of repositories to fetch (must be between 1 and 100 inclusive)
      * @return List of GitHub repositories matching the criteria
+     * @throws IllegalArgumentException if any of the parameters don't meet the validation requirements
      * @throws GitHubApiException if there's an error communicating with the GitHub API
      */
-    public List<GitHubApiRepo> fetchRepositories(String language, LocalDate createdAfter) {
-        logger.info("Fetching GitHub repositories for language: {} created after: {}", 
-                language, createdAfter);
-        
+    public List<GitHubApiRepo> fetchRepositories(String language, LocalDate createdAfter, int size) {
+        if (language == null || language.isBlank()) {
+            throw new IllegalArgumentException("Language must not be null or empty");
+        }
+        if (createdAfter == null) {
+            throw new IllegalArgumentException("Created after date must not be null");
+        }
+        if (size <= 0) {
+            throw new IllegalArgumentException("Size must be greater than 0");
+        }
+        if (size > 100) {
+            throw new IllegalArgumentException("Size must not exceed 100");
+        }
+
         try {
             String query = buildQuery(language, createdAfter);
             
@@ -61,6 +73,7 @@ public class GitHubClient {
                             .queryParam("per_page", DEFAULT_PER_PAGE)
                             .queryParam("sort", "stars")
                             .queryParam("order", "desc")
+                            .queryParam("per_page", size)
                             .build())
                     .retrieve()
                     .onStatus(HttpStatusCode::isError, (request, response) -> {

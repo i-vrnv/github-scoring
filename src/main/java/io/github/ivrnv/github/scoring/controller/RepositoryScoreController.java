@@ -2,6 +2,7 @@ package io.github.ivrnv.github.scoring.controller;
 
 import io.github.ivrnv.github.scoring.model.ScoredRepository;
 import io.github.ivrnv.github.scoring.service.RepositoryScoreService;
+import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import org.slf4j.Logger;
@@ -45,11 +46,14 @@ public class RepositoryScoreController {
     @GetMapping("/scored")
     public ResponseEntity<List<ScoredRepository>> getScoredRepositories(
             @RequestParam("language") @NotBlank String language,
-            @RequestParam("created_after") @NotBlank @Pattern(regexp = "\\d{4}-\\d{2}-\\d{2}") String createdAfter) {
+            @RequestParam("created_after") @NotBlank @Pattern(regexp = "\\d{4}-\\d{2}-\\d{2}") String createdAfter,
+            @RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "size", defaultValue = "30") @Max(100) int size
+            ) {
         
         try {
             LocalDate createdAfterDate = LocalDate.parse(createdAfter, DATE_FORMATTER);
-            List<ScoredRepository> scoredRepositories = repositoryScoreService.getScoredRepositories(language, createdAfterDate);
+            List<ScoredRepository> scoredRepositories = repositoryScoreService.getScoredRepositories(language, createdAfterDate, size);
             return ResponseEntity.ok(scoredRepositories);
         } catch (DateTimeParseException e) {
             logger.error("Invalid date format: {}", createdAfter, e);

@@ -36,9 +36,9 @@ public class RepositoryScoreService {
      * @param createdAfter The minimum creation date for repositories
      * @return A list of repositories with their calculated popularity scores
      */
-    public List<ScoredRepository> getScoredRepositories(String language, LocalDate createdAfter) {
+    public List<ScoredRepository> getScoredRepositories(String language, LocalDate createdAfter, int size) {
         try {
-            List<GitHubApiRepo> repositories = gitHubClient.fetchRepositories(language, createdAfter);
+            List<GitHubApiRepo> repositories = gitHubClient.fetchRepositories(language, createdAfter, size);
             
             return repositories.stream()
                 .map(this::convertToScoredRepository)

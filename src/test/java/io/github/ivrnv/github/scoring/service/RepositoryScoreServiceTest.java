@@ -36,6 +36,7 @@ class RepositoryScoreServiceTest {
         // Given
         var language = "java";
         var createdAfter = LocalDate.parse("2023-01-01");
+        var size = 30;
 
         OffsetDateTime recentUpdateTime = OffsetDateTime.now().minusDays(5);
 
@@ -46,10 +47,10 @@ class RepositoryScoreServiceTest {
 
         List<GitHubApiRepo> mockRepos = List.of(repo1, repo2);
 
-        when(gitHubClient.fetchRepositories(language, createdAfter)).thenReturn(mockRepos);
+        when(gitHubClient.fetchRepositories(language, createdAfter, size)).thenReturn(mockRepos);
 
         // When
-        List<ScoredRepository> result = sut.getScoredRepositories(language, createdAfter);
+        List<ScoredRepository> result = sut.getScoredRepositories(language, createdAfter, size);
 
         // Then
         assertThat(result).hasSize(2);
@@ -78,11 +79,12 @@ class RepositoryScoreServiceTest {
         // Given
         String language = "java";
         var createdAfter = LocalDate.parse("2023-01-01");
+        int size = 30;
 
-        when(gitHubClient.fetchRepositories(language, createdAfter)).thenReturn(Collections.emptyList());
+        when(gitHubClient.fetchRepositories(language, createdAfter, size)).thenReturn(Collections.emptyList());
         
         // When
-        List<ScoredRepository> result = sut.getScoredRepositories(language, createdAfter);
+        List<ScoredRepository> result = sut.getScoredRepositories(language, createdAfter, size);
         
         // Then
         assertThat(result).isEmpty();
@@ -93,11 +95,12 @@ class RepositoryScoreServiceTest {
         // Given
         String language = "java";
         var createdAfter = LocalDate.parse("2023-01-01");
+        int size = 30;
 
-        when(gitHubClient.fetchRepositories(language, createdAfter)).thenThrow(new RuntimeException("API Error"));
+        when(gitHubClient.fetchRepositories(language, createdAfter, size)).thenThrow(new RuntimeException("API Error"));
         
         // When
-        List<ScoredRepository> result = sut.getScoredRepositories(language, createdAfter);
+        List<ScoredRepository> result = sut.getScoredRepositories(language, createdAfter, size);
         
         // Then
         assertThat(result).isEmpty();
