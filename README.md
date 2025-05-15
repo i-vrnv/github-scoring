@@ -2,6 +2,9 @@
 
 A Spring Boot application that retrieves GitHub repositories based on language and creation date, then scores them according to their popularity.
 
+## Project Status
+[![CircleCI](https://dl.circleci.com/status-badge/img/circleci/UBSpMybzoA2RyJzmM5T6ZA/3LmMQzUKvsNHdo1JtC7uyP/tree/main.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/circleci/UBSpMybzoA2RyJzmM5T6ZA/3LmMQzUKvsNHdo1JtC7uyP/tree/main)
+
 ## Overview
 
 This service provides an API endpoint that:
