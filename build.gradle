@@ -30,6 +30,10 @@ tasks.named('test') {
 	useJUnitPlatform()
 }
 
+tasks.named('bootJar') {
+	archiveFileName.set("app.jar") // Указываем имя JAR-файла
+}
+
 def getVersionFromGit() {
 	String versionProperty = "release"
 	if (project.hasProperty(versionProperty) && !project.property(versionProperty).toString().trim().isEmpty()) {
